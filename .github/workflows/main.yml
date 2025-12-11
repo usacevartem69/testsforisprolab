@@ -1,4 +1,4 @@
-name: Run Unit Tests (unittest)
+name: CI for geometric_lib
 
 on:
   push:
@@ -12,17 +12,31 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
     
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
-    - name: Run unit tests for geometric_lib
+    - name: Run tests directly
       run: |
-        echo "Запуск всех модульных тестов на ${{ runner.os }}..."
-        python -m unittest discover -s tests -v
+        echo "Running tests directly as in README..."
+        
+        echo "1. Testing triangle..."
+        cd geometric_lib && python -m unittest ../tests/test_triangle.py
+        
+        echo "2. Testing circle..."
+        cd geometric_lib && python -m unittest ../tests/test_circle.py
+        
+        echo "3. Testing square..."
+        cd geometric_lib && python -m unittest ../tests/test_square.py
+        
+        echo "4. Testing rectangle..."
+        cd geometric_lib && python -m unittest ../tests/test_rectangle.py
+        
+        echo "All tests completed!"
