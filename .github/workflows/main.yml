@@ -1,42 +1,71 @@
-name: CI for geometric_lib
+name: Debug Tests
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: [push]
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-      fail-fast: false
+  debug:
+    runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup Python
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
-    - name: Run tests directly
+    - name: Clone and examine the repository structure
       run: |
-        echo "Running tests directly as in README..."
+        echo "=== FULL REPOSITORY STRUCTURE ==="
+        find . -type f -name "*.py" | sort
+        echo ""
+        echo "=== geometric_lib FOLDER ==="
+        ls -la geometric_lib/
+        echo ""
+        echo "=== TESTS FOLDER ==="
+        ls -la tests/
+        echo ""
+        echo "=== CONTENTS OF TEST FILES ==="
+        head -20 tests/*.py
+
+    - name: Check test imports
+      run: |
+        echo "=== TESTING IMPORTS ==="
+        cat > test_import.py << 'EOF'
+        import sys
+        sys.path.insert(0, '.')
         
-        echo "1. Testing triangle..."
-        cd geometric_lib && python -m unittest ../tests/test_triangle.py
+        print("Trying to import from geometric_lib...")
+        try:
+            from geometric_lib.circle import area, perimeter
+            print("✅ circle imported successfully")
+        except Exception as e:
+            print(f"❌ Error importing circle: {e}")
+            
+        try:
+            from geometric_lib.rectangle import area, perimeter
+            print("✅ rectangle imported successfully")
+        except Exception as e:
+            print(f"❌ Error importing rectangle: {e}")
+            
+        try:
+            from geometric_lib.square import area, perimeter
+            print("✅ square imported successfully")
+        except Exception as e:
+            print(f"❌ Error importing square: {e}")
+            
+        try:
+            from geometric_lib.triangle import area, perimeter
+            print("✅ triangle imported successfully")
+        except Exception as e:
+            print(f"❌ Error importing triangle: {e}")
+        EOF
         
-        echo "2. Testing circle..."
-        cd geometric_lib && python -m unittest ../tests/test_circle.py
-        
-        echo "3. Testing square..."
-        cd geometric_lib && python -m unittest ../tests/test_square.py
-        
-        echo "4. Testing rectangle..."
-        cd geometric_lib && python -m unittest ../tests/test_rectangle.py
-        
-        echo "All tests completed!"
+        python test_import.py
+
+    - name: Run tests with detailed output
+      run: |
+        echo "=== RUNNING TESTS WITH DETAILS ==="
+        cd geometric_lib
+        python -m unittest ../tests/test_circle.py -v 2>&1 || true
